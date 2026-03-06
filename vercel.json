@@ -4,6 +4,10 @@
     {
       "src": "backend/server.js",
       "use": "@vercel/node"
+    },
+    {
+      "src": "client/build/**",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
@@ -12,8 +16,12 @@
       "dest": "backend/server.js"
     },
     {
-      "src": "/(.*)",
+      "src": "/uploads/(.*)",
       "dest": "backend/server.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "client/build/index.html"
     }
   ]
 }
