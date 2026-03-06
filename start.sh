@@ -3,9 +3,18 @@
 # Set production mode
 export NODE_ENV=production
 
+# Install backend dependencies if needed
+echo "Installing backend dependencies..."
+cd backend
+npm install
+
+# Install client dependencies if needed
+echo "Installing client dependencies..."
+cd ../client
+npm install
+
 # Build the React client
 echo "Building React client..."
-cd client
 npm run build
 cd ..
 
