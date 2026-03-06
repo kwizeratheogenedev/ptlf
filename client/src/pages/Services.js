@@ -10,7 +10,7 @@ const Services = () => {
     const fetchServices = async () => {
       try {
         const res = await getServices();
-        setServices(res.data);
+        setServices(Array.isArray(res.data) ? res.data : []);
       } catch (error) {
         console.error('Error fetching services:', error);
       } finally {

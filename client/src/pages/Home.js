@@ -17,8 +17,8 @@ const Home = () => {
           getAchievements()
         ]);
         setProfile(profileRes.data);
-        setServices(servicesRes.data);
-        setAchievements(achievementsRes.data.slice(0, 3));
+        setServices(Array.isArray(servicesRes.data) ? servicesRes.data : []);
+        setAchievements(Array.isArray(achievementsRes.data) ? achievementsRes.data.slice(0, 3) : []);
       } catch (error) {
         console.error('Error fetching data:', error);
       } finally {

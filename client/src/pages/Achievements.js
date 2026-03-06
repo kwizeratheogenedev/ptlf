@@ -11,7 +11,7 @@ const Achievements = () => {
     const fetchAchievements = async () => {
       try {
         const res = await getAchievements();
-        setAchievements(res.data);
+        setAchievements(Array.isArray(res.data) ? res.data : []);
       } catch (error) {
         console.error('Error fetching achievements:', error);
       } finally {

@@ -15,7 +15,7 @@ const AdminMessages = () => {
   const fetchMessages = async () => {
     try {
       const res = await getMessages();
-      setMessages(res.data);
+      setMessages(Array.isArray(res.data) ? res.data : []);
     } catch (error) {
       console.error('Error fetching messages:', error);
     } finally {

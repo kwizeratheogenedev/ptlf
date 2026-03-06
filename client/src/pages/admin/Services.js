@@ -28,7 +28,7 @@ const AdminServices = () => {
   const fetchServices = async () => {
     try {
       const res = await getAdminServices();
-      setServices(res.data);
+      setServices(Array.isArray(res.data) ? res.data : []);
     } catch (error) {
       console.error('Error fetching services:', error);
     } finally {
