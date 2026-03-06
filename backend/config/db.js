@@ -1,16 +1,18 @@
 const mongoose = require('mongoose');
 
+let isConnected = false;
+
 const connectDB = async () => {
   // Skip if MONGODB_URI is not set
   if (!process.env.MONGODB_URI) {
     console.warn('MONGODB_URI not set - database connection skipped');
-    return;
+    return false;
   }
 
   // If already connected, don't reconnect
   if (mongoose.connection.readyState === 1) {
     console.log('MongoDB already connected');
-    return;
+    return true;
   }
 
   try {
@@ -19,10 +21,21 @@ const connectDB = async () => {
       socketTimeoutMS: 4500,
     });
     console.log(`MongoDB Connected: ${conn.connection.host}`);
+    isConnected = true;
+    return true;
   } catch (error) {
     console.error(`MongoDB Connection Error: ${error.message}`);
-    // Don't exit in serverless - just log the error
+    isConnected = false;
+    return false;
   }
 };
 
-module.exports = connectDB;
+// Helper to check if DB is available before operations
+const checkConnection = async () => {
+  if (!isConnected && process.env.MONGODB_URI) {
+    return await connectDB();
+  }
+  return isConnected;
+};
+
+module.exports = { connectDB, checkConnection };

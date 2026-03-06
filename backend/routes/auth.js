@@ -15,7 +15,8 @@ const authLimiter = rateLimit({
 
 // Generate JWT Token
 const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
+  const jwtSecret = process.env.JWT_SECRET || 'fallback-secret-change-in-production';
+  return jwt.sign({ id }, jwtSecret, { expiresIn: '30d' });
 };
 
 // @route   POST /api/auth/register
