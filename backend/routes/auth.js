@@ -3,6 +3,7 @@ const router = express.Router();
 const jwt = require('jsonwebtoken');
 const rateLimit = require('express-rate-limit');
 const User = require('../models/User');
+const auth = require('../middleware/auth');
 
 // Rate limiter for auth routes
 const authLimiter = rateLimit({
