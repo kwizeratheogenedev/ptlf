@@ -1,155 +1,32 @@
 const express = require('express');
 const router = express.Router();
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
-const auth = require('../middleware/auth');
-const Achievement = require('../models/Achievement');
 
-// Configure multer for file uploads (use /tmp for Vercel)
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadDir = process.env.VERCEL ? '/tmp/achievements' : 'backend/uploads/achievements';
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
-  }
-});
+// Mock achievements data
+const mockAchievements = [
+  { _id: '1', title: 'AWS Certified', description: 'AWS Solutions Architect', category: 'certification', issuer: 'Amazon', isFeatured: true, order: 1 },
+  { _id: '2', title: 'Best Project Award', description: 'Internal hackathon winner', category: 'award', issuer: 'Company', isFeatured: true, order: 2 }
+];
 
-// File filter for allowed document types
-const fileFilter = (req, file, cb) => {
-  const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-  if (allowedTypes.includes(file.mimetype)) {
-    cb(null, true);
-  } else {
-    cb(new Error('Invalid file type. Only PDF, JPEG, PNG, GIF, and WebP are allowed.'), false);
-  }
-};
-
-const upload = multer({ 
-  storage,
-  fileFilter,
-  limits: { fileSize: 5 * 1024 * 1024 }
-});
-
-// GET /api/achievements - Get all achievements
+// GET /api/achievements
 router.get('/', async (req, res) => {
   try {
+    const Achievement = require('../models/Achievement');
     const achievements = await Achievement.find().sort({ order: 1, createdAt: -1 });
-    res.json(achievements);
+    res.json(achievements.length > 0 ? achievements : mockAchievements);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.json(mockAchievements);
   }
 });
 
-// GET /api/achievements/:id - Get single achievement
+// GET /api/achievements/:id
 router.get('/:id', async (req, res) => {
   try {
+    const Achievement = require('../models/Achievement');
     const achievement = await Achievement.findById(req.params.id);
-    if (!achievement) {
-      return res.status(404).json({ message: 'Achievement not found' });
-    }
-    res.json(achievement);
+    if (achievement) return res.json(achievement);
+    res.json(mockAchievements.find(a => a._id === req.params.id) || null);
   } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
-
-// POST /api/achievements - Create achievement
-router.post('/', auth, upload.single('document'), async (req, res) => {
-  try {
-    const { title, description, category, issuer, issueDate, link, isFeatured, order } = req.body;
-
-    if (!title || !description) {
-      return res.status(400).json({ message: 'Title and description are required' });
-    }
-
-    const achievementData = {
-      title,
-      description,
-      category: category || 'certification',
-      issuer,
-      issueDate: issueDate || null,
-      link,
-      isFeatured: isFeatured === 'true' || isFeatured === true,
-      order: parseInt(order) || 0
-    };
-
-    if (req.file) {
-      const basePath = process.env.VERCEL ? '/tmp' : 'backend';
-      achievementData.documentUrl = `${basePath}/uploads/achievements/${req.file.filename}`;
-      achievementData.documentName = req.file.originalname;
-    }
-
-    const achievement = await Achievement.create(achievementData);
-    res.status(201).json(achievement);
-  } catch (error) {
-    if (error instanceof multer.MulterError) {
-      return res.status(400).json({ message: error.message });
-    }
-    res.status(500).json({ message: error.message });
-  }
-});
-
-// PUT /api/achievements/:id - Update achievement
-router.put('/:id', auth, upload.single('document'), async (req, res) => {
-  try {
-    const { title, description, category, issuer, issueDate, link, isFeatured, order } = req.body;
-    
-    const achievementData = {
-      title,
-      description,
-      category,
-      issuer,
-      issueDate,
-      link,
-      isFeatured: isFeatured === 'true' || isFeatured === true,
-      order: parseInt(order) || 0
-    };
-
-    if (req.file) {
-      const basePath = process.env.VERCEL ? '/tmp' : 'backend';
-      achievementData.documentUrl = `${basePath}/uploads/achievements/${req.file.filename}`;
-      achievementData.documentName = req.file.originalname;
-    }
-
-    const achievement = await Achievement.findByIdAndUpdate(
-      req.params.id,
-      achievementData,
-      { new: true }
-    );
-
-    if (!achievement) {
-      return res.status(404).json({ message: 'Achievement not found' });
-    }
-
-    res.json(achievement);
-  } catch (error) {
-    if (error instanceof multer.MulterError) {
-      return res.status(400).json({ message: error.message });
-    }
-    res.status(500).json({ message: error.message });
-  }
-});
-
-// DELETE /api/achievements/:id - Delete achievement
-router.delete('/:id', auth, async (req, res) => {
-  try {
-    const achievement = await Achievement.findById(req.params.id);
-    
-    if (!achievement) {
-      return res.status(404).json({ message: 'Achievement not found' });
-    }
-
-    await Achievement.findByIdAndDelete(req.params.id);
-    res.json({ message: 'Achievement deleted' });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.json(mockAchievements.find(a => a._id === req.params.id) || null);
   }
 });
 

@@ -3,13 +3,11 @@
   "version": "1.0.0",
   "description": "IT Portfolio MERN Application",
   "scripts": {
-    "install": "npm install && cd backend && npm install && cd ../client && npm install",
+    "install": "cd backend && npm install",
     "build": "cd client && npm run build",
-    "start": "bash start.sh",
-    "dev": "cd backend && npm run dev",
-    "vercel-build": "cd backend && npm install && cd ../client && npm run build"
+    "vercel-build": "cd backend && npm install && cd ../client && npm install && npm run build"
   },
   "engines": {
-    "node": ">=14.0.0"
+    "node": "18.x"
   }
 }
