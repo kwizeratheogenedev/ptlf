@@ -35,7 +35,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // Root route
-app.get('/', (req, res) => {
+app.get('/home', (req, res) => {
   res.json({ message: 'Welcome to the Portfolio API' });
 });
 
@@ -65,7 +65,7 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: err.message || 'Something went wrong!' });
 });
 
-// Create uploads directories
+// Create uploads dhttps://ptlf-three.vercel.app/irectories
 const ensureUploadsDir = (dir) => {
   const fullPath = path.join(__dirname, dir);
   if (!fs.existsSync(fullPath)) {
