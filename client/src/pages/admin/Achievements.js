@@ -309,7 +309,7 @@ const AdminAchievements = () => {
             <div className="item-actions">
               {achievement.documentUrl && (
                 <a
-                  href={`http://localhost:5000${achievement.documentUrl}`}
+                  href={`${achievement.documentUrl}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="btn btn-outline"

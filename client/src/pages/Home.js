@@ -59,7 +59,7 @@ const Home = () => {
             <div className="profile-image-container">
               {profile?.profileImage ? (
                 <img
-                  src={`http://localhost:5000${profile.profileImage}`}
+                  src={`${profile.profileImage}`}
                   alt={profile.name}
                   className="profile-image"
                 />

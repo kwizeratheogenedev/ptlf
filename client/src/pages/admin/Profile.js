@@ -122,7 +122,7 @@ const AdminProfile = () => {
           <div className="profile-image-upload">
             {profile?.profileImage ? (
               <img
-                src={`http://localhost:5000${profile.profileImage}`}
+                src={`${profile.profileImage}`}
                 alt="Profile"
                 className="current-profile-image"
               />
