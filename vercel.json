@@ -12,14 +12,6 @@
       "dest": "backend/server.js"
     },
     {
-      "src": "/uploads/(.*)",
-      "dest": "backend/server.js"
-    },
-    {
-      "src": "/static/(.*)",
-      "dest": "backend/server.js"
-    },
-    {
       "src": "/(.*)",
       "dest": "backend/server.js"
     }
