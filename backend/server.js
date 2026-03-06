@@ -34,9 +34,14 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Portfolio API is running' });
 });
 
-// Root route
+// Root route - serve frontend
 app.get('/', (req, res) => {
-  res.json({ message: 'Welcome to the Portfolio API' });
+  const buildPath = path.join(__dirname, '../client/build/index.html');
+  if (fs.existsSync(buildPath)) {
+    res.sendFile(buildPath);
+  } else {
+    res.json({ message: 'Welcome to the Portfolio API' });
+  }
 });
 
 // API Routes
@@ -47,16 +52,14 @@ app.use('/api/messages', messages);
 app.use('/api/profile', profile);
 
 // Serve static files from React build in production
-if (process.env.NODE_ENV === 'production') {
-  const buildPath = path.join(__dirname, '../client/build');
-  if (fs.existsSync(buildPath)) {
-    app.use(express.static(buildPath));
+const buildPath = path.join(__dirname, '../client/build');
+if (fs.existsSync(buildPath)) {
+  app.use(express.static(buildPath));
 
-    // Handle React routing
-    app.get('*', (req, res) => {
-      res.sendFile(path.join(buildPath, 'index.html'));
-    });
-  }
+  // Handle React routing - serve index.html for all non-API routes
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(buildPath, 'index.html'));
+  });
 }
 
 // Error handling middleware
