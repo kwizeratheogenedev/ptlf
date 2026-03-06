@@ -1,0 +1,14 @@
+{
+  "name": "portfolio-app",
+  "version": "1.0.0",
+  "description": "IT Portfolio MERN Application",
+  "scripts": {
+    "install:all": "npm install && cd backend && npm install && cd ../client && npm install",
+    "build": "cd client && npm run build",
+    "start": "bash start.sh",
+    "dev": "cd backend && npm run dev"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
