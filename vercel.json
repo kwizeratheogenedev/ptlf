@@ -4,14 +4,6 @@
     {
       "src": "backend/server.js",
       "use": "@vercel/node"
-    },
-    {
-      "src": "client/build/index.html",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "client/build/static/**",
-      "use": "@vercel/static"
     }
   ],
   "routes": [
@@ -21,15 +13,11 @@
     },
     {
       "src": "/static/(.*)",
-      "dest": "client/build/static/$1"
-    },
-    {
-      "src": "/",
-      "dest": "client/build/index.html"
+      "dest": "backend/server.js"
     },
     {
       "src": "/(.*)",
-      "dest": "client/build/index.html"
+      "dest": "backend/server.js"
     }
   ]
 }

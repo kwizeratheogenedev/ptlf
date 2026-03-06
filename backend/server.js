@@ -27,30 +27,30 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Portfolio API is running' });
 });
 
-// API Routes
+// API Routes - IMPORTANT: must be before catch-all
 app.use('/api/auth', auth);
 app.use('/api/achievements', achievements);
 app.use('/api/services', services);
 app.use('/api/messages', messages);
 app.use('/api/profile', profile);
 
-// Serve static files from React build in production
+// Serve static files from React build
 const fs = require('fs');
 const buildPath = path.join(__dirname, '../client/build');
 
 if (fs.existsSync(buildPath)) {
   app.use(express.static(buildPath));
-
-  // Handle React routing - serve index.html for all non-API routes
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(buildPath, 'index.html'));
-  });
-} else {
-  // Fallback for development
-  app.get('/', (req, res) => {
-    res.json({ message: 'Welcome to the Portfolio API - Build not found' });
-  });
 }
+
+// Catch-all for frontend - must be LAST
+app.get('*', (req, res) => {
+  const indexPath = path.join(buildPath, 'index.html');
+  if (fs.existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    res.status(404).json({ message: 'Not found' });
+  }
+});
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -58,12 +58,10 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: err.message || 'Something went wrong!' });
 });
 
-// Connect to database (non-blocking for Vercel)
+// Connect to database
 if (process.env.MONGODB_URI) {
   connectDB().then(connected => {
-    if (connected) {
-      console.log('Database connected');
-    }
+    if (connected) console.log('Database connected');
   }).catch(err => {
     console.log('Database connection failed:', err.message);
   });
