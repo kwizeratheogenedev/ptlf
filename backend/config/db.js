@@ -5,7 +5,7 @@ let isConnected = false;
 const connectDB = async () => {
   // Skip if MONGODB_URI is not set
   if (!process.env.MONGODB_URI) {
-    console.warn('MONGODB_URI not set - database connection skipped');
+    console.log('MONGODB_URI not set - running without database');
     return false;
   }
 
@@ -30,12 +30,4 @@ const connectDB = async () => {
   }
 };
 
-// Helper to check if DB is available before operations
-const checkConnection = async () => {
-  if (!isConnected && process.env.MONGODB_URI) {
-    return await connectDB();
-  }
-  return isConnected;
-};
-
-module.exports = { connectDB, checkConnection };
+module.exports = { connectDB };
