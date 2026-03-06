@@ -7,7 +7,7 @@
     "build": "cd client && npm run build",
     "start": "bash start.sh",
     "dev": "cd backend && npm run dev",
-    "vercel-build": "npm run build"
+    "vercel-build": "cd backend && npm install && cd ../client && npm run build"
   },
   "engines": {
     "node": ">=14.0.0"
