@@ -3,25 +3,20 @@ const router = express.Router();
 const auth = require('../middleware/auth');
 const Message = require('../models/Message');
 
-// @route   POST /api/messages
-// @desc    Send a message (public)
-// @access  Public
+// POST /api/messages - Send a message
 router.post('/', async (req, res) => {
   try {
     const { name, email, subject, message, phone } = req.body;
 
-    // Input validation
     if (!name || !email || !subject || !message) {
       return res.status(400).json({ message: 'Please provide all required fields' });
     }
 
-    // Validate email format
     if (!/^\S+@\S+\.\S+$/.test(email)) {
       return res.status(400).json({ message: 'Please enter a valid email address' });
     }
 
-    // Sanitize inputs to prevent XSS
-    const sanitize = (str) => str ? str.replace(/[<>]/g, '') : '';
+    const sanitize = (str) => str ? String(str).replace(/[<>]/g, '') : '';
 
     const newMessage = await Message.create({
       name: sanitize(name),
@@ -37,9 +32,7 @@ router.post('/', async (req, res) => {
   }
 });
 
-// @route   GET /api/messages
-// @desc    Get all messages (admin)
-// @access  Private
+// GET /api/messages - Get all messages (admin)
 router.get('/', auth, async (req, res) => {
   try {
     const messages = await Message.find().sort({ createdAt: -1 });
@@ -49,9 +42,7 @@ router.get('/', auth, async (req, res) => {
   }
 });
 
-// @route   GET /api/messages/unread
-// @desc    Get unread messages count
-// @access  Private
+// GET /api/messages/unread - Get unread messages count
 router.get('/unread', auth, async (req, res) => {
   try {
     const count = await Message.countDocuments({ isRead: false });
@@ -61,9 +52,7 @@ router.get('/unread', auth, async (req, res) => {
   }
 });
 
-// @route   GET /api/messages/:id
-// @desc    Get single message
-// @access  Private
+// GET /api/messages/:id - Get single message
 router.get('/:id', auth, async (req, res) => {
   try {
     const message = await Message.findById(req.params.id);
@@ -72,7 +61,6 @@ router.get('/:id', auth, async (req, res) => {
       return res.status(404).json({ message: 'Message not found' });
     }
 
-    // Mark as read
     if (!message.isRead) {
       message.isRead = true;
       await message.save();
@@ -84,9 +72,7 @@ router.get('/:id', auth, async (req, res) => {
   }
 });
 
-// @route   PUT /api/messages/:id/read
-// @desc    Mark message as read
-// @access  Private
+// PUT /api/messages/:id/read - Mark message as read
 router.put('/:id/read', auth, async (req, res) => {
   try {
     const message = await Message.findByIdAndUpdate(
@@ -105,9 +91,7 @@ router.put('/:id/read', auth, async (req, res) => {
   }
 });
 
-// @route   DELETE /api/messages/:id
-// @desc    Delete message
-// @access  Private
+// DELETE /api/messages/:id - Delete message
 router.delete('/:id', auth, async (req, res) => {
   try {
     const message = await Message.findByIdAndDelete(req.params.id);

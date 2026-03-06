@@ -3,9 +3,7 @@ const router = express.Router();
 const auth = require('../middleware/auth');
 const Service = require('../models/Service');
 
-// @route   GET /api/services
-// @desc    Get all services (public)
-// @access  Public
+// GET /api/services - Get all services
 router.get('/', async (req, res) => {
   try {
     const services = await Service.find({ isActive: true }).sort({ order: 1 });
@@ -15,9 +13,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-// @route   GET /api/services/admin
-// @desc    Get all services including inactive (admin)
-// @access  Private
+// GET /api/services/admin - Get all services (admin)
 router.get('/admin', auth, async (req, res) => {
   try {
     const services = await Service.find().sort({ order: 1 });
@@ -27,9 +23,7 @@ router.get('/admin', auth, async (req, res) => {
   }
 });
 
-// @route   GET /api/services/:id
-// @desc    Get single service
-// @access  Public
+// GET /api/services/:id - Get single service
 router.get('/:id', async (req, res) => {
   try {
     const service = await Service.findById(req.params.id);
@@ -42,16 +36,22 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// @route   POST /api/services
-// @desc    Create service
-// @access  Private
+// POST /api/services - Create service
 router.post('/', auth, async (req, res) => {
   try {
     const { title, description, shortDescription, icon, category, price, features, isActive, order } = req.body;
 
-    // Input validation
     if (!title || !description) {
       return res.status(400).json({ message: 'Title and description are required' });
+    }
+
+    let parsedFeatures = [];
+    if (features) {
+      try {
+        parsedFeatures = typeof features === 'string' ? JSON.parse(features) : features;
+      } catch (e) {
+        parsedFeatures = [];
+      }
     }
 
     const serviceData = {
@@ -61,13 +61,7 @@ router.post('/', auth, async (req, res) => {
       icon: icon || 'code',
       category: category || 'development',
       price: price || '',
-      features: (() => {
-        try {
-          return features ? JSON.parse(features) : [];
-        } catch (e) {
-          return [];
-        }
-      })(),
+      features: parsedFeatures,
       isActive: isActive !== false,
       order: parseInt(order) || 0
     };
@@ -79,27 +73,28 @@ router.post('/', auth, async (req, res) => {
   }
 });
 
-// @route   PUT /api/services/:id
-// @desc    Update service
-// @access  Private
+// PUT /api/services/:id - Update service
 router.put('/:id', auth, async (req, res) => {
   try {
     const { title, description, shortDescription, icon, category, price, features, isActive, order } = req.body;
     
+    let parsedFeatures = [];
+    if (features) {
+      try {
+        parsedFeatures = typeof features === 'string' ? JSON.parse(features) : features;
+      } catch (e) {
+        parsedFeatures = [];
+      }
+    }
+
     const serviceData = {
       title,
       description,
-      shortDescription: shortDescription || description.substring(0, 150),
+      shortDescription: shortDescription || description?.substring(0, 150),
       icon,
       category,
       price,
-      features: (() => {
-        try {
-          return features ? JSON.parse(features) : [];
-        } catch (e) {
-          return [];
-        }
-      })(),
+      features: parsedFeatures,
       isActive,
       order: parseInt(order) || 0
     };
@@ -107,7 +102,7 @@ router.put('/:id', auth, async (req, res) => {
     const service = await Service.findByIdAndUpdate(
       req.params.id,
       serviceData,
-      { new: true }
+      { new: true, runValidators: true }
     );
 
     if (!service) {
@@ -120,9 +115,7 @@ router.put('/:id', auth, async (req, res) => {
   }
 });
 
-// @route   DELETE /api/services/:id
-// @desc    Delete service
-// @access  Private
+// DELETE /api/services/:id - Delete service
 router.delete('/:id', auth, async (req, res) => {
   try {
     const service = await Service.findByIdAndDelete(req.params.id);

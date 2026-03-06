@@ -6,10 +6,10 @@ const fs = require('fs');
 const auth = require('../middleware/auth');
 const Achievement = require('../models/Achievement');
 
-// Configure multer for file uploads
+// Configure multer for file uploads (use /tmp for Vercel)
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadDir = 'backend/uploads/achievements';
+    const uploadDir = process.env.VERCEL ? '/tmp/achievements' : 'backend/uploads/achievements';
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true });
     }
@@ -34,12 +34,10 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({ 
   storage,
   fileFilter,
-  limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
+  limits: { fileSize: 5 * 1024 * 1024 }
 });
 
-// @route   GET /api/achievements
-// @desc    Get all achievements (public)
-// @access  Public
+// GET /api/achievements - Get all achievements
 router.get('/', async (req, res) => {
   try {
     const achievements = await Achievement.find().sort({ order: 1, createdAt: -1 });
@@ -49,9 +47,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-// @route   GET /api/achievements/:id
-// @desc    Get single achievement
-// @access  Public
+// GET /api/achievements/:id - Get single achievement
 router.get('/:id', async (req, res) => {
   try {
     const achievement = await Achievement.findById(req.params.id);
@@ -64,14 +60,11 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// @route   POST /api/achievements
-// @desc    Create achievement with document upload
-// @access  Private
+// POST /api/achievements - Create achievement
 router.post('/', auth, upload.single('document'), async (req, res) => {
   try {
     const { title, description, category, issuer, issueDate, link, isFeatured, order } = req.body;
 
-    // Input validation
     if (!title || !description) {
       return res.status(400).json({ message: 'Title and description are required' });
     }
@@ -88,7 +81,8 @@ router.post('/', auth, upload.single('document'), async (req, res) => {
     };
 
     if (req.file) {
-      achievementData.documentUrl = `/uploads/achievements/${req.file.filename}`;
+      const basePath = process.env.VERCEL ? '/tmp' : 'backend';
+      achievementData.documentUrl = `${basePath}/uploads/achievements/${req.file.filename}`;
       achievementData.documentName = req.file.originalname;
     }
 
@@ -102,9 +96,7 @@ router.post('/', auth, upload.single('document'), async (req, res) => {
   }
 });
 
-// @route   PUT /api/achievements/:id
-// @desc    Update achievement
-// @access  Private
+// PUT /api/achievements/:id - Update achievement
 router.put('/:id', auth, upload.single('document'), async (req, res) => {
   try {
     const { title, description, category, issuer, issueDate, link, isFeatured, order } = req.body;
@@ -121,7 +113,8 @@ router.put('/:id', auth, upload.single('document'), async (req, res) => {
     };
 
     if (req.file) {
-      achievementData.documentUrl = `/uploads/achievements/${req.file.filename}`;
+      const basePath = process.env.VERCEL ? '/tmp' : 'backend';
+      achievementData.documentUrl = `${basePath}/uploads/achievements/${req.file.filename}`;
       achievementData.documentName = req.file.originalname;
     }
 
@@ -144,23 +137,13 @@ router.put('/:id', auth, upload.single('document'), async (req, res) => {
   }
 });
 
-// @route   DELETE /api/achievements/:id
-// @desc    Delete achievement
-// @access  Private
+// DELETE /api/achievements/:id - Delete achievement
 router.delete('/:id', auth, async (req, res) => {
   try {
     const achievement = await Achievement.findById(req.params.id);
     
     if (!achievement) {
       return res.status(404).json({ message: 'Achievement not found' });
-    }
-
-    // Delete document file if exists
-    if (achievement.documentUrl) {
-      const filePath = path.join(__dirname, '..', achievement.documentUrl);
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
-      }
     }
 
     await Achievement.findByIdAndDelete(req.params.id);

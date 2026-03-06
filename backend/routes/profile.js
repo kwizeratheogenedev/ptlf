@@ -9,7 +9,7 @@ const Profile = require('../models/Profile');
 // Configure multer for profile image upload
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadDir = 'backend/uploads/profile';
+    const uploadDir = process.env.VERCEL ? '/tmp/profile' : 'backend/uploads/profile';
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true });
     }
@@ -34,18 +34,15 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({ 
   storage,
   fileFilter,
-  limits: { fileSize: 2 * 1024 * 1024 } // 2MB limit
+  limits: { fileSize: 2 * 1024 * 1024 }
 });
 
-// @route   GET /api/profile
-// @desc    Get profile (public)
-// @access  Public
+// GET /api/profile - Get profile
 router.get('/', async (req, res) => {
   try {
     let profile = await Profile.findOne();
     
     if (!profile) {
-      // Create default profile if none exists
       profile = await Profile.create({
         name: 'Your Name',
         title: 'IT Professional',
@@ -59,24 +56,19 @@ router.get('/', async (req, res) => {
   }
 });
 
-// @route   PUT /api/profile
-// @desc    Update profile
-// @access  Private
+// PUT /api/profile - Update profile
 router.put('/', auth, upload.single('profileImage'), async (req, res) => {
   try {
     const { name, title, bio, email, phone, location, website, linkedin, github, twitter, resumeUrl, skills } = req.body;
 
-    // Input validation
     if (!name) {
       return res.status(400).json({ message: 'Name is required' });
     }
 
-    // Validate email if provided
     if (email && !/^\S+@\S+\.\S+$/.test(email)) {
       return res.status(400).json({ message: 'Please enter a valid email address' });
     }
 
-    // Validate URLs if provided
     const urlFields = ['website', 'linkedin', 'github', 'twitter', 'resumeUrl'];
     const urlPattern = /^https?:\/\/.+/i;
     for (const field of urlFields) {
@@ -100,7 +92,8 @@ router.put('/', auth, upload.single('profileImage'), async (req, res) => {
     };
 
     if (req.file) {
-      profileData.profileImage = `/uploads/profile/${req.file.filename}`;
+      const basePath = process.env.VERCEL ? '/tmp' : 'backend';
+      profileData.profileImage = `${basePath}/uploads/profile/${req.file.filename}`;
     }
 
     if (skills) {
@@ -128,33 +121,26 @@ router.put('/', auth, upload.single('profileImage'), async (req, res) => {
   }
 });
 
-// @route   PUT /api/profile/image
-// @desc    Update profile image only
-// @access  Private
+// PUT /api/profile/image - Update profile image only
 router.put('/image', auth, upload.single('profileImage'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ message: 'No file uploaded' });
     }
 
+    const basePath = process.env.VERCEL ? '/tmp' : 'backend';
+    const profileImageUrl = `${basePath}/uploads/profile/${req.file.filename}`;
+
     let profile = await Profile.findOne();
     
-    // Delete old image if exists
-    if (profile && profile.profileImage) {
-      const oldPath = path.join(__dirname, '..', profile.profileImage);
-      if (fs.existsSync(oldPath)) {
-        fs.unlinkSync(oldPath);
-      }
-    }
-
-    profile = await Profile.findOneAndUpdate(
-      {},
-      { profileImage: `/uploads/profile/${req.file.filename}` },
-      { new: true }
-    );
-
-    if (!profile) {
-      profile = await Profile.create({ profileImage: `/uploads/profile/${req.file.filename}` });
+    if (profile) {
+      profile = await Profile.findOneAndUpdate(
+        {},
+        { profileImage: profileImageUrl },
+        { new: true }
+      );
+    } else {
+      profile = await Profile.create({ profileImage: profileImageUrl });
     }
 
     res.json(profile);
