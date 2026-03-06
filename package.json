@@ -6,7 +6,8 @@
     "install:all": "npm install && cd backend && npm install && cd ../client && npm install",
     "build": "cd client && npm run build",
     "start": "bash start.sh",
-    "dev": "cd backend && npm run dev"
+    "dev": "cd backend && npm run dev",
+    "vercel-build": "cd client && npm install && npm run build && cd ../backend && npm install"
   },
   "engines": {
     "node": ">=14.0.0"
